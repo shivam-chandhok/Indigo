@@ -14,7 +14,7 @@ Balaji Krishnamurthy (*Equal Contribution)
 
 
 <p align="center">
-  <img alt="intro_image" src="./main_fig.png" width="1150"/>
+  <img alt="intro_image" src=".images/main_fig.png" width="1150"/>
 </p>
 
 
@@ -46,13 +46,13 @@ Results of Class-agnostic Object Detection of MViTS including our proposed Multi
 
 <strong>Class-agnostic Object Detection</strong> performance of MViTs in comparison with bottom-up approaches and uni-modal detectors on five natural image OD datasets. MViTs show consistently good results on all datasets.
 
-![Results](./tab1.png)
+![Results](./images/tab1.png)
 
 <hr />
 
 <strong>Generalization to New Domains</strong>: Class-agnostic OD performance of MViTs in comparison with uni-modal detector(RetinaNet) on five out-of-domain OD datasets. MViTs show consistently good results on all datasets.
 
-![Results](./attn.png)
+![Results](./images/attn.png)
 
 <hr />
 
@@ -60,14 +60,14 @@ Results of Class-agnostic Object Detection of MViTS including our proposed Multi
 The numbers on top of the bars indicate occurrences of the corresponding category in the training dataset.
 The MViT achieves good recall values even for the classes with no or very few occurrences.
 
-![Results](./tab3.png)
+![Results](./images/tab3.png)
 
 <hr />
 
 <strong> Enhanced Interactability</strong>: Effect of using different <strong>intuitive text queries</strong> on the MAVL class-agnostic OD performance.
 Combining detections from multiple queries captures varying aspects of objectness.
 
-![Results](./tab2.png)
+![Results](./images/tab2.png)
 
 <hr />
 
@@ -80,13 +80,13 @@ The same model is trained longer in setting 4.
 In setting 5, the dataloader structure corresponding to captions is kept intact. 
 Results from setting 5 demonstrate the importance of structure introduced by language.
 
-![Results](./ablation.png)
+![Results](.images/ablation.png)
 
 <hr />
 
 <strong> Open-world Object Detection</strong>: Effect of using class-agnostic OD proposals from MAVL for pseudo labelling of unknowns in Open World Detector (ORE).
 
-![Results](./ablation2.png)
+![Results](.images/ablation2.png)
 
 <hr />
 

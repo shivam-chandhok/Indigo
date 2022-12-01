@@ -14,7 +14,7 @@ Balaji Krishnamurthy (*Equal Contribution)
 
 
 <p align="center">
-  <img alt="intro_image" src=".images/main_fig.png" width="1150"/>
+  <img alt="intro_image" src="./images/main_fig.png" width="1150"/>
 </p>
 
 

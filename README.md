@@ -54,14 +54,12 @@ Results of our proposed method INDIGO on Domain Generalization and OpenDG along 
 
 <hr />
 
-<strong>Open Domain Generalization (ClosedDG)</strong> performance of INDOGO in comparison with state-of art Domain Generalization methods on benchmark datasets
+<strong>Open Domain Generalization (OpenDG)</strong> performance of INDOGO in comparison with state-of art Domain Generalization methods on benchmark datasets
 ![Results](./images/tab3.png)
 
 
 <hr />
-
-
-
+<strong>Analysis and Ablation Studies(OpenDG)</strong> 
 ![Results](./images/tab2.png)
 
 <hr />

@@ -54,9 +54,9 @@ Results of our proposed method INDIGO on Domain Generalization and OpenDG along 
 
 <hr />
 
-
+<strong>Open Domain Generalization (ClosedDG)</strong> performance of INDOGO in comparison with state-of art Domain Generalization methods on benchmark datasets
 ![Results](./images/tab3.png)
-<strong>Open Domain Generalization (ClosedDG)</strong> performance of INDOGO in comparison with state-of art Domain Generalization methods on DomainNet and Office-Home Datasets.
+
 
 <hr />
 
@@ -85,7 +85,7 @@ Results of our proposed method INDIGO on Domain Generalization and OpenDG along 
 ## Citation
 
 ```bibtex
-@inproceedings{indigo,
+@inproceedings{indigo2022,
     title={INDIGO: Intrinsic Multimodality for Domain Generalization}, 
     author={P Mangla and S Chandhok and M Aggarwal and VN Balasubramanian and B Krishnamurthy},
     booktitle={ECCV'22- OOD-CV Workshop},

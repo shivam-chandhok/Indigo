@@ -48,7 +48,7 @@ Results of our proposed method INDIGO on Domain Generalization and OpenDG along 
 ![Results](./images/tab1.png)
 
 <hr />
-
+<strong> Attention Visualizations</strong>
 
 ![Results](./images/attn.png)
 
@@ -56,6 +56,7 @@ Results of our proposed method INDIGO on Domain Generalization and OpenDG along 
 
 
 ![Results](./images/tab3.png)
+<strong>Open Domain Generalization (ClosedDG)</strong> performance of INDOGO in comparison with state-of art Domain Generalization methods on DomainNet and Office-Home Datasets.
 
 <hr />
 

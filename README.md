@@ -63,12 +63,12 @@ Load teacher model using main.py and then run
 <hr />
 
 
-![Results](.images/ablation.png)
+![Results](./images/ablation.png)
 
 <hr />
 
 
-![Results](.images/ablation2.png)
+![Results](./images/ablation2.png)
 
 <hr />
 

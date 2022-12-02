@@ -50,41 +50,27 @@ Results of Class-agnostic Object Detection of MViTS including our proposed Multi
 
 <hr />
 
-<strong>Generalization to New Domains</strong>: Class-agnostic OD performance of MViTs in comparison with uni-modal detector(RetinaNet) on five out-of-domain OD datasets. MViTs show consistently good results on all datasets.
 
 ![Results](./images/attn.png)
 
 <hr />
 
-<strong> Generalization to Rare/Novel Classes</strong>: MAVL class-agnostic OD performance on rarely and frequently occurring categories in the pretraining captions.
-The numbers on top of the bars indicate occurrences of the corresponding category in the training dataset.
-The MViT achieves good recall values even for the classes with no or very few occurrences.
 
 ![Results](./images/tab3.png)
 
 <hr />
 
-<strong> Enhanced Interactability</strong>: Effect of using different <strong>intuitive text queries</strong> on the MAVL class-agnostic OD performance.
-Combining detections from multiple queries captures varying aspects of objectness.
+
 
 ![Results](./images/tab2.png)
 
 <hr />
 
-<strong> Language Skeleton/Structure</strong>: Experimental analysis to explore the contribution of language by removing all textual inputs, but maintaining the structure introduced by captions. 
-All experiments are performed on Def-DETR. 
-In setting 1, annotations corresponding to same images are combined. 
-Setting 2 has an additional NMS applied to remove duplicate boxes. 
-In setting 3, four to eight boxes are randomly grouped in each iteration. 
-The same model is trained longer in setting 4. 
-In setting 5, the dataloader structure corresponding to captions is kept intact. 
-Results from setting 5 demonstrate the importance of structure introduced by language.
 
 ![Results](.images/ablation.png)
 
 <hr />
 
-<strong> Open-world Object Detection</strong>: Effect of using class-agnostic OD proposals from MAVL for pseudo labelling of unknowns in Open World Detector (ORE).
 
 ![Results](.images/ablation2.png)
 

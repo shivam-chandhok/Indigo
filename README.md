@@ -41,6 +41,9 @@ Load teacher model using main.py and then run
 ### Standard Training Approach
 ```CUDA_VISIBLE_DEVICES=2,3 python main.py --dg --target clipart  --config_file configs/zsl+dg/clipart.json --dataset domainnet   --name test  --runs 5 --method standard --model vit_small_hybrid```
 ## Results
+Results of our proposed method INDIGO on Domain Generalization and OpenDG along with attention visualizations and analysis
+
+<strong>Domain Generalization (ClosedDG)</strong> performance of INDOGO in comparison with state-of art Domain Generalization methods on DomainNet and Office-Home Datasets.
 
 ![Results](./images/tab1.png)
 

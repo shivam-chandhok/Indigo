@@ -41,10 +41,6 @@ Load teacher model using main.py and then run
 ### Standard Training Approach
 ```CUDA_VISIBLE_DEVICES=2,3 python main.py --dg --target clipart  --config_file configs/zsl+dg/clipart.json --dataset domainnet   --name test  --runs 5 --method standard --model vit_small_hybrid```
 ## Results
-Results of Class-agnostic Object Detection of MViTS including our proposed Multiscale Attention ViT with Late fusion
-(MAVL) model, applications, and exploratory analysis.
-
-<strong>Class-agnostic Object Detection</strong> performance of MViTs in comparison with bottom-up approaches and uni-modal detectors on five natural image OD datasets. MViTs show consistently good results on all datasets.
 
 ![Results](./images/tab1.png)
 

@@ -60,6 +60,7 @@ Results of our proposed method INDIGO on Domain Generalization and OpenDG along 
 
 <hr />
 <strong>Analysis and Ablation Studies(OpenDG)</strong> 
+
 ![Results](./images/tab2.png)
 
 <hr />

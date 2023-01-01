@@ -95,6 +95,6 @@ Results of our proposed method INDIGO on Domain Generalization and OpenDG along 
 
 
 ## Acknowledgements
-Our code is based on [DINO](https://github.com/facebookresearch/dino) and [TimeSformer](https://github.com/facebookresearch/TimeSformer) repositories. We thank the authors for releasing their code. If you use our model, please consider citing these works as well.
+Our code is based on [CuMix](https://github.com/mancinimassimiliano/CuMix) and [timm](https://github.com/rwightman/pytorch-image-models/tree/main/timm) repositories. We thank the authors for releasing their code. If you use our model, please consider citing these works as well.
 
 

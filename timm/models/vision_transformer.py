@@ -226,6 +226,20 @@ class Block(nn.Module):
         x = x + self.drop_path(self.mlp(self.norm2(x)))
         return x
 
+class SLN(nn.Module):
+    """
+    Self-modulated LayerNorm
+    """
+    def __init__(self, num_features):
+        super(SLN, self).__init__()
+        self.ln = nn.LayerNorm(num_features)
+        # self.gamma = nn.Parameter(torch.FloatTensor(1, 1, 1))
+        # self.beta = nn.Parameter(torch.FloatTensor(1, 1, 1))
+        self.gamma = nn.Linear(num_features, num_features)
+        self.beta = nn.Linear(num_features, num_features)
+
+    def forward(self, hl, w):
+        return (1 + self.gamma(w)) * self.ln(hl) + self.beta(w)
 
 class VisionTransformer(nn.Module):
     """ Vision Transformer
@@ -340,7 +354,7 @@ class VisionTransformer(nn.Module):
         if self.num_tokens == 2:
             self.head_dist = nn.Linear(self.embed_dim, self.num_classes) if num_classes > 0 else nn.Identity()
 
-    def forward(self, x, feat=None):
+    def forward_orig(self, x, feat=None):
         x = self.patch_embed(x)
         cls_token = self.cls_token.expand(x.shape[0], -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
         if self.dist_token is None:   
@@ -350,27 +364,45 @@ class VisionTransformer(nn.Module):
             else:
                 x = torch.cat((cls_token, x), dim=1)
         else:
-            x = torch.cat((cls_token, self.dist_token.expand(x.shape[0], -1, -1), x), dim=1)
+            if feat is not None:
+                feat = feat[:, None, :]
+                x = torch.cat((cls_token, feat, x), dim=1)
+            else:   
+                x = torch.cat((cls_token, self.dist_token.expand(x.shape[0], -1, -1), x), dim=1)
+
         x = self.pos_drop(x + self.pos_embed)
         x = self.blocks(x)
         x = self.norm(x)
         if self.dist_token is None:
             return self.pre_logits(x[:, 0])
         else:
-            return x[:, 0], x[:, 1]
+            return 0.5*x[:, 0] + 0.5*x[:, 1]
+    
+    def forward_mid(self, x, feat, mid_fuse=0):
+        x = self.patch_embed(x)
+        cls_token = self.cls_token.expand(x.shape[0], -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
+        if self.dist_token is None:   
+            x = torch.cat((cls_token, x), dim=1)
+        else:
+            x = torch.cat((cls_token, self.dist_token.expand(x.shape[0], -1, -1), x), dim=1)
 
-#     def forward(self, x):
-#         x = self.forward_features(x)
-#         if self.head_dist is not None:
-#             x, x_dist = self.head(x[0]), self.head_dist(x[1])  # x must be a tuple
-#             if self.training and not torch.jit.is_scripting():
-#                 # during inference, return the average of both classifier predictions
-#                 return x, x_dist
-#             else:
-#                 return (x + x_dist) / 2
-#         else:
-#             x = self.head(x)
-#         return x
+        x = self.pos_drop(x + self.pos_embed)
+        for i, blk in enumerate(self.blocks):
+            x = torch.cat([feat, x], 1)
+            x = blk(x)
+            x = blk(x)[:, 197:] 
+        x = self.norm(x)
+        if self.dist_token is None:
+            return self.pre_logits(x[:, 0])
+        else:
+            return 0.5*x[:, 0] + 0.5*x[:, 1]
+    
+    def forward(self, x, feat=None, mid_fuse=-1):
+        if mid_fuse >=0:
+            return self.forward_mid(x, feat, mid_fuse)
+        else:
+            return self.forward_orig(x, feat)
+
 
 
 def _init_vit_weights(module: nn.Module, name: str = '', head_bias: float = 0., jax_impl: bool = False):

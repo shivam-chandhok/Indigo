@@ -6,14 +6,25 @@ import torch.backends.cudnn as cudnn
 from torch import distributed as distributed
 from data.mat_dataset import MatDataset
 from data.domain_dataset import PACSDataset,DomainNetDataset, DomainDataset
-from methods import CuMix
-from methods_vit import model_dict, StandardTraining, DistillTraining, CrossClassDistillTraining
-from utils import test
+from src.methods import CuMix
+from src.methods_vit import model_dict, StandardTraining, DistillTraining, CrossClassDistillTraining, LateFusionTraining, MidFusionTraining
+from src.utils import test
+from CLIP.clip import clip
 import numpy as np
 import pickle
 from tqdm import tqdm
 import random
+from src.configs import config as cfg
 from sklearn.cluster import KMeans
+from fastprogress.fastprogress import master_bar, progress_bar
+from sys import exit
+from torch.utils.data import DataLoader
+import wandb
+# os.environ['WANDB_SILENT']="true"
+# wandb.init(project="MMDG", entity="chandhokshivam2")
+# Code!
+
+ # Successful exit
 
 def set_seed(seed):
     torch.manual_seed(seed)
@@ -33,16 +44,17 @@ parser = argparse.ArgumentParser(description='Zero-shot Learning meets Domain Ge
 parser.add_argument('--target', default='cub', help='Which experiment to run (e.g. [cub, awa1, flo, sun, all])')
 parser.add_argument('--zsl', action='store_true', help='ZSL setting?')
 parser.add_argument('--dg', action='store_true', help='DG setting?')
-parser.add_argument('--method', default='class_token_distill', help='DG setting?', choices=['standard', 'distill', 'class_token_distill', 'cumix'])
+parser.add_argument('--method', default='class_token_distill', help='DG setting?')
 parser.add_argument('--dataset', default='pacs', type=str, help='Data root directory')
 parser.add_argument('--model', default='vit_small_hybrid', type=str, help='Data root directory', choices=list(model_dict.keys()))
 parser.add_argument('--teacher', default='clip', type=str, help='Data root directory', choices=list(model_dict.keys()))
 parser.add_argument('--name', default='test', type=str, help='Name of the experiment (used to store '
                                                            'the logger and the checkpoints)')
 parser.add_argument('--runs', default=1, type=int, help='Number of runs per experiment')
-parser.add_argument('--log_dir', default='/home/pmangla/user_space/cumix/logs', type=str, help='Log directory')
-parser.add_argument('--ckpt_dir', default='/home/pmangla/user_space/cumix/checkpoints2/', type=str, help='Checkpoint directory')
+parser.add_argument('--log_dir', default= cfg.LOG_PATH, type=str, help='Log directory')
+parser.add_argument('--ckpt_dir', default= cfg.CKPT_PATH, type=str, help='Checkpoint directory')
 parser.add_argument('--config_file', default=None, help='Config file for the method.')
+
 parser.add_argument("--local_rank", type=int, default=0)
 
 args = parser.parse_args()
@@ -90,7 +102,7 @@ if args.dg:
             semantic_w = 3.0
             configs['freeze_bn']=True
         elif args.dataset == 'domainnet':
-            args.data_root = '/home/pmangla/user_space/domainnet'
+            args.data_root = cfg.BASE_DATA
             assert args.target in DNET_DOMAINS, \
                 args.target + " is not a valid target domain in PACS. Please specify a valid PACS target in " + PACS_DOMAINS.__str__()
             DOMAINS = DNET_DOMAINS
@@ -186,11 +198,75 @@ for r in range(args.runs):
         method = DistillTraining(seen_classes=seen,unseen_classes=unseen,attributes=attributes,configs=configs,zsl_only = not args.dg,
                    dg_only = not args.zsl, model = args.model, teacher=teacher1)
     elif args.method == 'class_token_distill':
+        text_inputs = []
+        for c in train_dataset.classes:
+    	    for d in train_dataset.domains:
+        	    text_inputs += [ f"a photo of {c} in {d} domain"]
+        text_inputs = torch.cat([clip.tokenize(c) for c in text_inputs])
+        text_features = (clip.load("ViT-B/16", device='cpu')[0]).encode_text(text_inputs)
         method = CrossClassDistillTraining(seen_classes=seen,unseen_classes=unseen,attributes=attributes,configs=configs,zsl_only = not args.dg,
+                   dg_only = not args.zsl, model = args.model, teacher = args.teacher, text_features=text_features.detach().cuda())
+    elif args.method == 'late_fusion_training':
+        text_inputs = []
+        for c in train_dataset.classes:
+    	    for d in train_dataset.domains:
+                text_inputs += [ f"a {d} of {c}"]
+        	    # text_inputs += [ f"a photo of {c} in {d} domain"]
+        text_inputs = torch.cat([clip.tokenize(c) for c in text_inputs])
+        text_features = (clip.load("ViT-B/16", device='cpu')[0]).encode_text(text_inputs)
+        method = LateFusionTraining(seen_classes=seen,unseen_classes=unseen,attributes=attributes,configs=configs,zsl_only = not args.dg,
+                   dg_only = not args.zsl, model = args.model, teacher = args.teacher, text_features=text_features.detach().cuda())
+    elif args.method == 'mid_fusion_training':
+        method = MidFusionTraining(seen_classes=seen,unseen_classes=unseen,attributes=attributes,configs=configs,zsl_only = not args.dg,
                    dg_only = not args.zsl, model = args.model, teacher = args.teacher)
     elif args.method == 'cumix':
         method = CuMix(seen_classes=seen,unseen_classes=unseen,attributes=attributes,configs=configs,zsl_only = not args.dg,
                    dg_only = not args.zsl)
+    elif args.method == 'clip_zsl_inference':
+        print('Starting CLIP Inference')
+        model, preprocess = clip.load('ViT-B/16', 'cuda')
+        model.eval()
+        
+        test_dataset_clip = dataset(args.data_root, target, train=False, transformer=preprocess)
+        
+        print(test_dataset_clip.classes)
+        text_inputs = [ f"a photo of {c}" for c in test_dataset_clip.classes]
+        # print(text_inputs)
+        text_inputs = torch.cat([clip.tokenize(c) for c in text_inputs]).cuda()
+
+        mb_clip = master_bar(range(1))
+        total, correct = 0, 0
+        features = []
+        lab = []
+        for j in mb:
+            for i, (data, _,_, labels) in enumerate(progress_bar(DataLoader(test_dataset_clip, batch_size=240),parent=mb_clip)):
+                
+                data = data.cuda()
+                labels = labels.cuda()
+                with torch.no_grad():
+                    features.append(model.encode_image(data))
+                    
+                    lab.append(labels.cpu().numpy())
+                    logits_per_image, logits_per_text = model(data, text_inputs)
+                preds = torch.argmax(logits_per_image, -1)
+                total += data.size(0)
+                correct += (preds == labels).sum().item()
+                
+        print('Accuracy : ', float(correct)/total)
+        tsne_features = torch.cat(features)
+        flat_list = [item for sublist in lab for item in sublist]
+        tsne_labels = [str(i) for i in flat_list]
+        tsne_table = wandb.Table(
+        columns = [str(i) for i in range(512)], 
+        data    = tsne_features.cpu().numpy()
+        
+    )
+        tsne_table.add_column(name = "target", data = tsne_labels)
+        wandb.log({
+        "embeddings": tsne_table 
+            })
+            
+        exit(0)
 
     temp_results = []
     top_sources = 0.
@@ -198,11 +274,13 @@ for r in range(args.runs):
     top_idx=-1
 
     # Strat training loop
-    for e in tqdm(range(0, configs['epochs'])):
-        better = False
-        semantic_loss, mimg_loss, mfeat_loss = method.fit(train_dataset)
-        accuracy = test(method, test_dataset, zsl=args.zsl)
+    mb = master_bar(range(0, configs['epochs']))
 
+    for e in mb:
+        better = False
+        semantic_loss, mimg_loss, mfeat_loss = method.fit(mb, train_dataset)
+        accuracy = test(method, test_dataset, zsl=args.zsl)
+        print(accuracy)
 
         # In case of DG only, perform validation on source domains, as in https://arxiv.org/pdf/1710.03077.pdf
         if val_datasets is not None:
@@ -252,3 +330,5 @@ print('\nResults for ' + target, np.mean(logger['results']),np.std(logger['resul
 
 with open(log_file, 'wb') as handle:
     pickle.dump(logger, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+# %%
